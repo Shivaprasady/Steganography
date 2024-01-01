@@ -107,6 +107,40 @@ Status read_and_validate_encode_args(int argc,char *argv[], EncodeInfo *encInfo)
     }
 }
 
+Status do_encoding(EncodeInfo *encInfo)
+{
+    /* opening given files */
+    Status file_ptr = open_files(encInfo);
+    if (file_ptr == e_failure)
+    {
+        printf("ERROR: %s function failed\n", "open_files" );
+        return e_failure;
+    }            
+    else
+    {
+        printf("SUCCESS: %s function completed\n", "open_files" );
+    }
+    
+    
+    /*check capacity */
+    Status capacity = check_capacity(encInfo);
+
+    if(capacity == e_failure)
+    {
+
+        printf("Done. found OKAY\n");
+        printf("%s file is too large to encode in %s \n",encInfo->secret_fname,encInfo->src_image_fname);
+    }
+    else
+    {
+        printf("Done. found OKAY\n");
+    }
+
+
+
+    return e_success;
+}
+
 int main(int argc, char *argv[])
 {
 
@@ -116,9 +150,8 @@ int main(int argc, char *argv[])
 
 
         
-    OperationType check = check_operation_type(argv);
 
-    if(check == e_encode)
+    if(check_operation_type(argv) == e_encode)
     {
         printf("Encode\n");
         if(argc > 5 || argc < 4)
@@ -142,14 +175,21 @@ int main(int argc, char *argv[])
             /*all arguments passed are valid perform the encoding  */
             printf("##    Encoding procedure started     ##\n");
 
+            if(do_encoding(encInfo) == e_success)
+            {
+                printf("Encoding done successfully\n");
+            }
+
+
+            
         }
 
     }
-    else if(check == e_decode)
+    else if(check_operation_type(argv) == e_decode)
     {
         printf("Decode\n");
     }
-    else if(check == e_unsupported)
+    else if(check_operation_type(argv) == e_unsupported)
     {
         printf("Error : Invalid arguments\n");
         printf("usage : ./a.out -e <file_name>.bmp <file_name>.txt [<output_file_name>.bmp]\n");
