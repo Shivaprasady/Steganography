@@ -59,13 +59,21 @@ Status do_encoding(EncodeInfo *encInfo)
     copy_bmp_header(encInfo->fptr_src_image,encInfo->fptr_stego_image);
 
     /*encoding magic string*/
-
     encode_magic_string(MAGIC_STRING,encInfo);
 
-    /*Encoding secret file extension */
 
+    /*Encoding secret file extension */
     const char *file_extn = strstr(encInfo->secret_fname,".");
     encode_secret_file_extn(file_extn,encInfo);
+
+
+    /*Encoding secret file size*/
+
+    encode_secret_file_size(encInfo->secret_file_capacity,encInfo);
+
+    /*Encoding secret file data*/
+
+    encode_secret_file_data(encInfo);
 
     return e_success;
 }
