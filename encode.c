@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include<stdlib.h>
 #include<string.h>
 #include "encode.h"
 #include "types.h"
@@ -187,7 +188,7 @@ Status check_capacity(EncodeInfo *encInfo)
 
     FILE *fptr = encInfo->fptr_secret;
     printf("Checking for %s size\n",encInfo->secret_fname);
-    encInfo->secret_file_capacity = get_file_size(fptr);
+    encInfo->size_secret_file = get_file_size(fptr);
     printf("Checking for %s capacity to handle %s\n",encInfo->src_image_fname,encInfo->secret_fname);
     if(encInfo->image_capacity > (54 + (encInfo->secret_file_capacity + 4 + strlen(MAGIC_STRING) + 4 ) * 8));
     {
@@ -234,16 +235,23 @@ Status encode_byte_to_lsb(char data, char *image_buffer)
 Status copy_bmp_header(FILE *fptr_src_image,FILE *fptr_stego_image)
 {
     printf("Copying image header\n");
-
-    char byte;
+    rewind(fptr_src_image);
+    rewind(fptr_stego_image);
+    /*char byte;
     for(int i = 0 ; i < 54 ; i++)
     {
         byte = getc(fptr_src_image);
         putc(byte,fptr_stego_image);
-    }
+    }*/
+
+    char *arr = (char *)malloc(54);
+    fread(arr,54,1,fptr_src_image);
+    fwrite(arr,54,1,fptr_stego_image);
+
 
     printf("Done\n");
 
+    free(arr);
     return e_success;
 }
 
@@ -266,11 +274,33 @@ Status encode_magic_string(const char *magic_string,EncodeInfo *encInfo)
     }
 }
 
+
+/*Encode size to lsb */
+Status encode_size_to_lsb(int size, char *image_buffer)
+{
+    for(int i = 0,j = 31 ; i < 32 ; i++,j--)
+    {
+        char mask = (size >> j) & 1;
+        image_buffer[i] = (image_buffer[i] & ~1) | mask;
+    }
+}
+
 /*Encode secret files extension */
 
 Status encode_secret_file_extn(const char *file_extn, EncodeInfo *encInfo)
 {
+
+    /*encoding secret file extenstion size*/
+
+    printf("Encoding secret file extenstion size\n");
+
     int size = strlen(file_extn);
+    char arr[32];
+    fread(arr,32,1,encInfo->fptr_src_image);
+    encode_size_to_lsb(size,arr);
+    fwrite(arr,32,1,encInfo->fptr_stego_image);
+    printf("Done\n");
+
 
 
     printf("Encoding secret file extension\n");
@@ -284,3 +314,40 @@ Status encode_secret_file_extn(const char *file_extn, EncodeInfo *encInfo)
         printf("Done\n");
     }
 }
+
+/* encoding secret file size*/
+Status encode_secret_file_size(long file_size,EncodeInfo *encInfo)
+{
+    printf("Encoding secret file size\n");
+    
+    char arr[32];
+    fread(arr,32,1,encInfo->fptr_src_image);
+    encode_size_to_lsb(encInfo->size_secret_file,arr);
+    fwrite(arr,32,1,encInfo->fptr_stego_image);
+
+    printf("Done\n");
+}
+
+
+/* encoding secret file data*/
+Status encode_secret_file_data(EncodeInfo *encInfo)
+{
+
+    
+    printf("Encoding secret file data\n");
+    char *secret = (char *)malloc(encInfo->size_secret_file);
+    
+    rewind(encInfo->fptr_secret);
+    fread(secret,encInfo->size_secret_file,1,encInfo->fptr_secret);
+
+
+    Status check = encode_data_to_image((const char *)secret,encInfo->size_secret_file
+            ,encInfo->fptr_src_image,encInfo->fptr_stego_image);
+
+    if(check == e_success)
+    {
+        printf("Done\n");
+    }
+}
+
+
