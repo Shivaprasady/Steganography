@@ -350,4 +350,15 @@ Status encode_secret_file_data(EncodeInfo *encInfo)
     }
 }
 
+Status copy_remaining_img_data(FILE *fptr_src,FILE *fptr_dest)
+{
+    unsigned char buffer[1024];
+    size_t bytesize;
 
+    while((bytesize = fread(buffer,1,sizeof(buffer),fptr_src)) > 0)
+    {
+        fwrite(buffer,1,bytesize,fptr_dest);
+    }
+    
+
+}

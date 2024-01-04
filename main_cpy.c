@@ -75,6 +75,11 @@ Status do_encoding(EncodeInfo *encInfo)
 
     encode_secret_file_data(encInfo);
 
+    /*Copy remaining image bytes from src to stego after encoding*/
+
+    copy_remaining_img_data(encInfo->fptr_src_image,encInfo->fptr_stego_image);
+
+
     return e_success;
 }
 
