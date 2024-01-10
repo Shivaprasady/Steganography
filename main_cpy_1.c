@@ -93,6 +93,34 @@ Status do_decoding(DecodeInfo *decInfo)
     {
         printf("Done\n");
     }
+    else{
+        return e_failure;
+    }
+
+    rewind(decInfo->fptr_encoded_image);
+
+    if(skip_header(decInfo->fptr_encoded_image) == e_failure)
+    {
+        return e_failure;
+    }
+
+    if(decode_magic_string(decInfo) == e_failure)
+    {
+        return e_failure;
+    }
+
+    if(decode_extn_data(decInfo) == e_failure)
+    {
+        return e_failure;
+    }
+
+    if(decode_secret_file_data(decInfo) == e_failure)
+    {
+        return e_failure;
+    }
+
+    
+
 
 }
 
@@ -166,7 +194,7 @@ int main(int argc, char *argv[])
 
         if(do_decoding(decInfo) == e_success)
         {
-            printf("Decoding done successfully\n");
+            printf("##  Decoding done successfully  ##\n");
         }
 
 
