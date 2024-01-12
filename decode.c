@@ -71,7 +71,6 @@ Status open_decode_files(DecodeInfo *decInfo)
         return e_failure;
     }
 
-    /*
     // Opening output file
     if(strcmp(decInfo->output_file_fname,"NULL") == 0)
     {
@@ -86,7 +85,7 @@ Status open_decode_files(DecodeInfo *decInfo)
     
         return e_failure;
     }
-*/
+
     return e_success;
 
 }
@@ -126,11 +125,16 @@ Status decode_extn_data(DecodeInfo *decInfo)
     decode_extn_size(arr,&size);
 
     size++;                         //To add null character at last.
+
+    /*  Decoding output file extension */
     char extension[size];
 
-    decode_data_from_image(decInfo->fptr_encoded_image,size-1,&extension);
+    printf("Decoding output file extension\n");
 
+    decode_data_from_image(decInfo->fptr_encoded_image,size-1,&extension);
     extension[size-1] = '\0';
+
+    printf("Done\n");
 
 
 
@@ -150,21 +154,14 @@ Status decode_extn_data(DecodeInfo *decInfo)
 
         decInfo->output_file_fname = output;
 
+
         decInfo->fptr_output_file = fopen(decInfo->output_file_fname, "w");
         if(decInfo->fptr_output_file == NULL)
         {
             printf("Error : Unable to open file %s\n",decInfo->output_file_fname);    
             return e_failure;
         }
-
-
-        decInfo->fptr_output_file = fopen(decInfo->output_file_fname, "w");
-        printf("Opened %s file\n",decInfo->output_file_fname);
-        if(decInfo->fptr_output_file == NULL)
-        {
-            printf("Error : Unable to open file %s\n",decInfo->output_file_fname);    
-            return e_failure;
-        }
+        printf("Opened %s file\nDone. Opened all required files\n",decInfo->output_file_fname);
     }
     else
     {
@@ -187,8 +184,6 @@ Status decode_extn_data(DecodeInfo *decInfo)
         char c = '.';
         int pos = strchr(decInfo->output_file_fname,c) - decInfo->output_file_fname;
 
-
-
         char output[pos+size];
         strcpy(output,decInfo->output_file_fname);
         for(int i = pos, j = 0; i < (pos+size+1) ; i++,j++)
@@ -197,20 +192,19 @@ Status decode_extn_data(DecodeInfo *decInfo)
         
         }
 
-
         decInfo->output_file_fname = output;
         
         decInfo->fptr_output_file = fopen(decInfo->output_file_fname, "w");
-        //printf("Opened %s file\n",decInfo->output_file_fname);
         if(decInfo->fptr_output_file == NULL)
         {
             printf("Error : Unable to open file %s\n",decInfo->output_file_fname);    
             return e_failure;
         }
+        printf("Opened %s file\n",decInfo->output_file_fname);
+        printf("Done. Opened all required files\n");
     }
 
 
-    printf("Done\n");
 
     return e_success;
 
@@ -231,34 +225,33 @@ Status decode_extn_size(char *arr,int *size)
         *size = (*size) | (mask << j);
     }
 
+    return e_success;
+
 }
 
 
 /*decode secret file data*/
 Status decode_secret_file_data(DecodeInfo *decInfo)
 {
-
-    /*Decoding file size */
     int size;
     char arr[32];
 
-
-    printf("Decoding secret file size \n");
-
     fread(arr,32,1,decInfo->fptr_encoded_image);
-    decode_extn_size(arr,&size);                    //code for decoding size both extension and secret file size is same
+    printf("Decoding secret file size\n");
+    if(decode_extn_size(arr,&size) == e_success)            //code for decoding size both extension and secret file size is same
+    {
+        printf("Done\n");
 
-    printf("Done\n");
+    }
 
-
-    /*decoding secret message to output file */
-    printf("Decoding secret file data\n");
     char secret_data[size];
+    printf("Decoding secret file data\n");
+
     if(decode_data_from_image(decInfo->fptr_encoded_image,size,&secret_data) == e_success)
     {
         fwrite(secret_data,1,sizeof(secret_data),decInfo->fptr_output_file);
+        printf("Done\n");
     }
-    printf("Done\n");
 
     return e_success;
     
